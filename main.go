@@ -5,6 +5,7 @@ import (
 
 	"github.com/envoker/gotk3/cairo"
 	"github.com/envoker/gotk3/gdk"
+
 	//"github.com/envoker/gotk3/glib"
 	"github.com/envoker/gotk3/gtk"
 )
@@ -105,22 +106,28 @@ func addControls(box *gtk.Box, canvas *Canvas, player *Player) {
 		hbox.PackStart(buttonApply, true, true, 0)
 
 		// buttonStart
-		buttonStart, _ := gtk.ButtonNewWithLabel("Start")
-		buttonStart.Connect("clicked", func() {
-			if err := player.Start(); err != nil {
-				log.Println(err)
-			}
-		})
-		hbox.PackStart(buttonStart, true, true, 0)
+		buttonStartStop, _ := gtk.ButtonNewWithLabel("Start")
+		buttonStartStop.Connect("clicked", func() {
 
-		// buttonStop
-		buttonStop, _ := gtk.ButtonNewWithLabel("Stop")
-		buttonStop.Connect("clicked", func() {
-			if err := player.Stop(); err != nil {
-				log.Println(err)
+			if player.Started() {
+				err := player.Stop()
+				if err != nil {
+					log.Println("ERR:", err)
+				}
+				buttonStartStop.SetLabel("Start")
+
+			} else {
+				err := player.Start()
+				if err != nil {
+					log.Println("ERR:", err)
+				}
+				buttonStartStop.SetLabel("Stop")
 			}
+			//			if err := player.Start(); err != nil {
+			//				log.Println(err)
+			//			}
 		})
-		hbox.PackStart(buttonStop, true, true, 0)
+		hbox.PackStart(buttonStartStop, true, true, 0)
 
 		vbox.PackEnd(hbox, false, false, 0)
 	}
@@ -146,7 +153,7 @@ func addDrawingArea(box *gtk.Box, canvas *Canvas, player *Player) {
 			log.Fatal(err)
 		}
 
-		if player.Stoped() {
+		if player.Stopped() {
 			//glib.IdleAdd(da.QueueDraw)
 			canvas.Render(0)
 		}

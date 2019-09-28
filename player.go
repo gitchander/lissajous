@@ -10,35 +10,53 @@ import (
 )
 
 type Player struct {
-	mutex   sync.Mutex
+	guard   sync.Mutex
 	da      *gtk.DrawingArea
 	c       *Canvas
 	quit    chan bool
 	started bool
+
+	td    time.Duration
+	durCh chan time.Duration
 }
 
 func NewPlayer() *Player {
 	return &Player{
-		quit: make(chan bool),
+		quit:  make(chan bool),
+		durCh: make(chan time.Duration),
 	}
 }
 
+func (p *Player) Started() bool {
+	p.guard.Lock()
+	ok := p.started
+	p.guard.Unlock()
+	return ok
+}
+
+func (p *Player) Stopped() bool {
+	p.guard.Lock()
+	ok := !(p.started)
+	p.guard.Unlock()
+	return ok
+}
+
 func (p *Player) SetCurve(c *Canvas) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	p.guard.Lock()
 	p.c = c
+	p.guard.Unlock()
 }
 
 func (p *Player) SetDrawingArea(da *gtk.DrawingArea) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	p.guard.Lock()
 	p.da = da
+	p.guard.Unlock()
 }
 
 func (p *Player) Start() error {
 
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	p.guard.Lock()
+	defer p.guard.Unlock()
 
 	if p.c == nil {
 		return errors.New("Curve is not set")
@@ -51,20 +69,35 @@ func (p *Player) Start() error {
 		return errors.New("is started")
 	}
 
-	go func() {
-		d := time.Second / 50
-		startTime := time.Now()
+	go func(dur time.Duration) {
+
+		framesPerSecond := 30 // frames per second
+
+		dt := time.Second / time.Duration(framesPerSecond)
+		t := time.Now()
+		t0 := t.Add(-dur)
+
 		for {
 			select {
 			case <-p.quit:
-				p.quit <- true
+				p.durCh <- dur
 				return
-			case <-time.After(d):
-				p.c.Render(time.Now().Sub(startTime))
-				glib.IdleAdd(p.da.QueueDraw)
+			default:
+			}
+
+			p.c.Render(dur)
+			glib.IdleAdd(p.da.QueueDraw)
+
+			now := time.Now()
+			dur = now.Sub(t0)
+
+			t = t.Add(dt)
+			d := t.Sub(now)
+			if d > 0 {
+				time.Sleep(d)
 			}
 		}
-	}()
+	}(p.td)
 
 	p.started = true
 
@@ -73,23 +106,17 @@ func (p *Player) Start() error {
 
 func (p *Player) Stop() error {
 
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	p.guard.Lock()
+	defer p.guard.Unlock()
 
 	if !p.started {
 		return errors.New("is stopped")
 	}
 
 	p.quit <- true
-	<-p.quit
+	p.td = <-p.durCh
 
 	p.started = false
 
 	return nil
-}
-
-func (p *Player) Stoped() bool {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	return !p.started
 }

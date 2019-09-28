@@ -116,7 +116,7 @@ func (c *Canvas) Render(deltaT time.Duration) {
 		Y: float64(height),
 	}.DivScalar(2)
 
-	t := float64(deltaT) / float64(time.Second)
+	t := deltaT.Seconds()
 
 	tailDuration := c.config.TailDuration
 

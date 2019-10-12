@@ -23,8 +23,7 @@ func (a Point) MulScalar(s float64) (b Point) {
 }
 
 func (a Point) DivScalar(s float64) (b Point) {
-	s = 1 / s
-	b.X = s * a.X
-	b.Y = s * a.Y
+	b.X = a.X / s
+	b.Y = a.Y / s
 	return
 }

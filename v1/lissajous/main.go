@@ -154,7 +154,6 @@ func addDrawingArea(box *gtk.Box, canvas *Canvas, player *Player) {
 		}
 
 		if player.Stopped() {
-			//glib.IdleAdd(da.QueueDraw)
 			canvas.Render(0)
 		}
 	})
@@ -166,6 +165,15 @@ func addDrawingArea(box *gtk.Box, canvas *Canvas, player *Player) {
 	box.PackEnd(drawingArea, true, true, 0)
 
 	player.SetDrawingArea(drawingArea)
+
+	//_, err = glib.IdleAdd(drawingArea.QueueDraw)
+	// _, err = glib.IdleAdd(func() bool {
+	// 	drawingArea.QueueDraw()
+	// 	return true
+	// })
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
 
 	//player.Start()
 }

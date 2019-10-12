@@ -86,6 +86,7 @@ func (p *Player) Start() error {
 			}
 
 			p.c.Render(dur)
+
 			glib.IdleAdd(p.da.QueueDraw)
 
 			now := time.Now()

@@ -69,33 +69,33 @@ func (p *Player) Start() error {
 		return errors.New("is started")
 	}
 
-	go func(dur time.Duration) {
+	go func(d time.Duration) {
 
 		framesPerSecond := 30 // frames per second
 
 		dt := time.Second / time.Duration(framesPerSecond)
 		t := time.Now()
-		t0 := t.Add(-dur)
+		t0 := t.Add(-d)
 
 		for {
 			select {
 			case <-p.quit:
-				p.durCh <- dur
+				p.durCh <- d
 				return
 			default:
 			}
 
-			p.c.Render(dur)
+			p.c.Render(d)
 
 			glib.IdleAdd(p.da.QueueDraw)
 
 			now := time.Now()
-			dur = now.Sub(t0)
+			d = now.Sub(t0)
 
 			t = t.Add(dt)
-			d := t.Sub(now)
-			if d > 0 {
-				time.Sleep(d)
+			dSleep := t.Sub(now)
+			if dSleep > 0 {
+				time.Sleep(dSleep)
 			}
 		}
 	}(p.td)

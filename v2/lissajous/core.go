@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gotk3/gotk3/cairo"
-	// "github.com/envoker/gotk3/cairo"
 )
 
 type Core struct {

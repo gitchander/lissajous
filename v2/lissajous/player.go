@@ -99,31 +99,31 @@ func (p *Player) Stop() error {
 // 	Render(time.Duration)
 // }
 
-func timeRender(stop <-chan struct{}, durCh chan<- time.Duration, dur time.Duration, render func(time.Duration)) {
+func timeRender(stop <-chan struct{}, durCh chan<- time.Duration, d time.Duration, render func(time.Duration)) {
 
 	framesPerSecond := 30 // frames per second
 
 	dt := time.Second / time.Duration(framesPerSecond)
 	t := time.Now()
-	t0 := t.Add(-dur)
+	t0 := t.Add(-d)
 
 	for {
 		select {
 		case <-stop:
-			durCh <- dur
+			durCh <- d
 			return
 		default:
 		}
 
-		render(dur)
+		render(d)
 
 		now := time.Now()
-		dur = now.Sub(t0)
+		d = now.Sub(t0)
 
 		t = t.Add(dt)
-		d := t.Sub(now)
-		if d > 0 {
-			time.Sleep(d)
+		dSleep := t.Sub(now)
+		if dSleep > 0 {
+			time.Sleep(dSleep)
 		}
 	}
 }

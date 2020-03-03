@@ -1,0 +1,4 @@
+$ ./lissajous --freqA 2 --freqB 3 --dur 1s --seg 100
+$ ./lissajous --freqA 200 --freqB 200.3 --dur 14ms --seg 100
+$ ./lissajous --freqA 200 --freqB 300.3 --dur 20ms --seg 200
+$ ./lissajous --freqA 250 --freqB 300.1 --dur 40ms --seg 400

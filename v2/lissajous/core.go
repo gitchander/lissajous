@@ -10,7 +10,7 @@ import (
 )
 
 type Core struct {
-	mutex     sync.Mutex
+	guard     sync.Mutex
 	config    Config
 	surface   *cairo.Surface
 	context   *cairo.Context
@@ -18,24 +18,30 @@ type Core struct {
 	allocSize Size
 }
 
-func NewCore(config Config) *Core {
-	return &Core{config: config}
+func NewCore(config Config) (*Core, error) {
+	c := new(Core)
+	err := c.SetConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 func (c *Core) Config() Config {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.guard.Lock()
+	defer c.guard.Unlock()
 	return c.config
 }
 
 func (c *Core) SetConfig(config Config) error {
 
-	if err := config.Error(); err != nil {
+	err := checkConfig(config)
+	if err != nil {
 		return err
 	}
 
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.guard.Lock()
+	defer c.guard.Unlock()
 
 	c.config = config
 
@@ -44,8 +50,8 @@ func (c *Core) SetConfig(config Config) error {
 
 func (c *Core) Resize(Width, Height int) error {
 
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.guard.Lock()
+	defer c.guard.Unlock()
 
 	if c.surface != nil {
 
@@ -65,7 +71,7 @@ func (c *Core) Resize(Width, Height int) error {
 
 	surface := cairo.CreateImageSurface(cairo.FORMAT_ARGB32, allocSize.Width, allocSize.Height)
 
-	fmt.Println("alloc size:", allocSize)
+	//fmt.Println("alloc size:", allocSize)
 
 	c.surface = surface
 	c.context = cairo.Create(c.surface)
@@ -76,20 +82,20 @@ func (c *Core) Resize(Width, Height int) error {
 }
 
 func (c *Core) Draw(context *cairo.Context) {
-
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	if c.surface != nil {
-		context.SetSourceSurface(c.surface, 0, 0)
-		context.Paint()
+	c.guard.Lock()
+	{
+		if c.surface != nil {
+			context.SetSourceSurface(c.surface, 0, 0)
+			context.Paint()
+		}
 	}
+	c.guard.Unlock()
 }
 
 func (c *Core) Render(deltaT time.Duration) {
 
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.guard.Lock()
+	defer c.guard.Unlock()
 
 	var (
 		width  = c.size.Width
@@ -118,27 +124,29 @@ func (c *Core) Render(deltaT time.Duration) {
 
 	t := deltaT.Seconds()
 
-	tailDuration := c.config.TailDuration
+	tailDuration := c.config.TailDuration.Seconds()
 
 	count := c.config.TailSegments + 1
 	dt := tailDuration / float64(count)
 
 	amplitude := 0.7 * (float64(minInt(width, height)) * 0.5)
 
-	AmplitudeX := amplitude
-	AmplitudeY := amplitude
+	var (
+		AmplitudeX = amplitude
+		AmplitudeY = amplitude
 
-	FrequencyX := c.config.FrequencyX
-	FrequencyY := c.config.FrequencyY
+		freqA = c.config.FreqA
+		freqB = c.config.FreqB
 
-	xw := 2 * math.Pi * FrequencyX
-	yw := 2 * math.Pi * FrequencyY
+		wA = 2 * math.Pi * freqA
+		wB = 2 * math.Pi * freqB
 
-	phaseShift := c.config.PhaseShift
+		phase = c.config.Phase
+	)
 
 	curr := Point2f{
-		X: AmplitudeX * math.Sin(xw*t+phaseShift),
-		Y: AmplitudeY * math.Sin(yw*t),
+		X: AmplitudeX * math.Sin(wA*t+phase),
+		Y: AmplitudeY * math.Sin(wB*t),
 	}.Add(center)
 
 	prev := curr
@@ -146,8 +154,8 @@ func (c *Core) Render(deltaT time.Duration) {
 	for i := 0; i < count; i++ {
 
 		curr = Point2f{
-			X: AmplitudeX * math.Sin(xw*t+phaseShift),
-			Y: AmplitudeY * math.Sin(yw*t),
+			X: AmplitudeX * math.Sin(wA*t+phase),
+			Y: AmplitudeY * math.Sin(wB*t),
 		}.Add(center)
 
 		cl := Clerp(bg, fg, float64(i)/float64(count-1))

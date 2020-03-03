@@ -4,6 +4,13 @@ type Point2f struct {
 	X, Y float64
 }
 
+func Pt2f(a, b float64) Point2f {
+	return Point2f{
+		X: a,
+		Y: b,
+	}
+}
+
 func (p Point2f) Add(q Point2f) Point2f {
 	return Point2f{
 		X: p.X + q.X,

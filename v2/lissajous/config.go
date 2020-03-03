@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"math"
 	"time"
 )
 
@@ -28,8 +27,8 @@ func checkConfig(c Config) error {
 	if (c.FreqB < 0) || (c.FreqB > 1000) {
 		return errors.New("Frequency Y must be in range [0 ... 1000]")
 	}
-	if (c.Phase < -2*math.Pi) || (c.Phase > 2*math.Pi) {
-		return errors.New("Phase Shift must be in range [-2*Pi ... +2*Pi]")
+	if !((0 <= c.Phase) && (c.Phase <= 1)) {
+		return errors.New("Phase Shift must be in range [0..1]")
 	}
 	if (c.TailDuration < 1*time.Millisecond) || (c.TailDuration > 120*time.Second) {
 		return errors.New("Tail Duration must be in range [1ms ... 120s]")

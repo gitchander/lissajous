@@ -135,18 +135,14 @@ func (c *Core) Render(deltaT time.Duration) {
 		AmplitudeX = amplitude
 		AmplitudeY = amplitude
 
-		freqA = c.config.FreqA
-		freqB = c.config.FreqB
-
-		wA = 2 * math.Pi * freqA
-		wB = 2 * math.Pi * freqB
-
-		phase = c.config.Phase
+		freqA = 2 * math.Pi * c.config.FreqA
+		freqB = 2 * math.Pi * c.config.FreqB
+		phase = 2 * math.Pi * c.config.Phase
 	)
 
 	curr := Point2f{
-		X: AmplitudeX * math.Sin(wA*t+phase),
-		Y: AmplitudeY * math.Sin(wB*t),
+		X: AmplitudeX * math.Sin(freqA*t+phase),
+		Y: AmplitudeY * math.Sin(freqB*t),
 	}.Add(center)
 
 	prev := curr
@@ -154,8 +150,8 @@ func (c *Core) Render(deltaT time.Duration) {
 	for i := 0; i < count; i++ {
 
 		curr = Point2f{
-			X: AmplitudeX * math.Sin(wA*t+phase),
-			Y: AmplitudeY * math.Sin(wB*t),
+			X: AmplitudeX * math.Sin(freqA*t+phase),
+			Y: AmplitudeY * math.Sin(freqB*t),
 		}.Add(center)
 
 		cl := Clerp(bg, fg, float64(i)/float64(count-1))

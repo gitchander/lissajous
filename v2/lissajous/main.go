@@ -19,7 +19,7 @@ func main() {
 
 	flag.Float64Var(&(config.FreqA), "freqA", 2, "frequency A")
 	flag.Float64Var(&(config.FreqB), "freqB", 3, "frequency B")
-	flag.Float64Var(&(config.Phase), "phase", 0, "phase difference")
+	flag.Float64Var(&(config.Phase), "phase", 0, "phase difference [0..1]")
 	flag.StringVar(&(tailDuration), "dur", "1s", "tail duration")
 	flag.IntVar(&(config.TailSegments), "seg", 100, "tail segments")
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"time"
 )
 
@@ -19,23 +19,47 @@ type Config struct {
 	TailSegments int
 }
 
+const (
+	minTailDuration = 1 * time.Millisecond
+	maxTailDuration = 120 * time.Second
+)
+
 func checkConfig(c Config) error {
+	if err := checkFieldFloat64("Frequency-X", c.FreqA, 0, 1000); err != nil {
+		return err
+	}
+	if err := checkFieldFloat64("Frequency-Y", c.FreqB, 0, 1000); err != nil {
+		return err
+	}
+	if err := checkFieldFloat64("Phase-Shift", c.Phase, 0, 1); err != nil {
+		return err
+	}
+	if err := checkFieldDuration("TailDuration", c.TailDuration, minTailDuration, maxTailDuration); err != nil {
+		return err
+	}
+	if err := checkFieldInt("TailSegments", c.TailSegments, 1, 10000); err != nil {
+		return err
+	}
+	return nil
+}
 
-	if (c.FreqA < 0) || (c.FreqA > 1000) {
-		return errors.New("Frequency X must be in range [0 ... 1000]")
+func checkFieldInt(name string, a int, min, max int) error {
+	if (a < min) || (max < a) {
+		return fmt.Errorf("field (%s: %d) out of interval [%d...%d]", name, a, min, max)
 	}
-	if (c.FreqB < 0) || (c.FreqB > 1000) {
-		return errors.New("Frequency Y must be in range [0 ... 1000]")
-	}
-	if !((0 <= c.Phase) && (c.Phase <= 1)) {
-		return errors.New("Phase Shift must be in range [0..1]")
-	}
-	if (c.TailDuration < 1*time.Millisecond) || (c.TailDuration > 120*time.Second) {
-		return errors.New("Tail Duration must be in range [1ms ... 120s]")
-	}
-	if (c.TailSegments < 1) || (c.TailSegments > 10000) {
-		return errors.New("Tail Segments must be in range [1 ... 10000]")
-	}
+	return nil
+}
 
+func checkFieldFloat64(name string, a float64, min, max float64) error {
+	if (a < min) || (max < a) {
+		return fmt.Errorf("field (%s: %f) out of interval [%f...%f]", name, a, min, max)
+	}
+	return nil
+}
+
+func checkFieldDuration(name string, a time.Duration, min, max time.Duration) error {
+	if (a < min) || (max < a) {
+		return fmt.Errorf("field (%s: %v) out of interval [%v...%v]", name, a, min, max)
+	}
 	return nil
 }

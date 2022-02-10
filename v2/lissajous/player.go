@@ -38,16 +38,14 @@ func NewPlayer(c *Core, da *gtk.DrawingArea) *Player {
 
 func (p *Player) Started() bool {
 	p.guard.Lock()
-	ok := p.started
-	p.guard.Unlock()
-	return ok
+	defer p.guard.Unlock()
+	return p.started
 }
 
 func (p *Player) Stopped() bool {
 	p.guard.Lock()
-	ok := !(p.started)
-	p.guard.Unlock()
-	return ok
+	defer p.guard.Unlock()
+	return !(p.started)
 }
 
 func (p *Player) Start() error {
@@ -84,7 +82,7 @@ func (p *Player) Stop() error {
 	defer p.guard.Unlock()
 
 	if !p.started {
-		return errors.New("is stopped")
+		return nil
 	}
 
 	p.stop <- struct{}{}

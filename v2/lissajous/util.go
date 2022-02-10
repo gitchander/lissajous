@@ -1,13 +1,25 @@
 package main
 
-func crop(x float64) float64 {
-	if x < 0 {
-		x = 0
+import (
+	"fmt"
+)
+
+func clamp(x float64, min, max float64) float64 {
+	if min > max {
+		err := fmt.Errorf("clamp: (min=%f) > (max=%f)", min, max)
+		panic(err)
 	}
-	if x > 1 {
-		x = 1
+	if x < min {
+		x = min
+	}
+	if x > max {
+		x = max
 	}
 	return x
+}
+
+func clamp01(x float64) float64 {
+	return clamp(x, 0, 1)
 }
 
 // Lerp - Linear interpolation

@@ -6,12 +6,13 @@ type Color struct {
 
 func (a Color) Norm() Color {
 	return Color{
-		R: crop(a.R),
-		G: crop(a.G),
-		B: crop(a.B),
+		R: clamp01(a.R),
+		G: clamp01(a.G),
+		B: clamp01(a.B),
 	}
 }
 
+// Clerp - color linear interpolation
 func Clerp(a, b Color, t float64) Color {
 	return Color{
 		R: lerp(a.R, b.R, t),
